@@ -1,9 +1,14 @@
 fn main() -> int {
-    int a = 5;
-    if (a < 10) {
-        print("a is less than %d\n", 10);
+    int x;
+    print("Enter a number: ");
+    scan(x);
+    print("You entered: %d\n", x);
+    
+        if (x < 10) {
+        print("x is less than %d\n", 10);
     } else {
-        print("a is not less than %d\n", 10);
+        print("x is not less than %d\n", 10);
     };
+    
     return 0;
 }
