@@ -13,9 +13,9 @@ public:
     CodeGen();
     void generate(ModuleAST& ast);
     void dump();
+    bool writeToFile(const std::string& filename);
 
 private:
-    void create_start_function();
     llvm::Value* logErrorV(const char* str);
     llvm::Function* getFunction(std::string name);
     llvm::Type* getType(const std::string& typeName);

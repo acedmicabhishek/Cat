@@ -36,7 +36,10 @@ int main(int argc, char* argv[]) {
     // 3. Code Generation
     CodeGen codegen;
     codegen.generate(*ast);
-    codegen.dump();
+    if (!codegen.writeToFile("output.ll")) {
+        std::cerr << "Failed to write LLVM IR to file.\n";
+        return 1;
+    }
 
     return 0;
 }

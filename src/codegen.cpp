@@ -1,6 +1,8 @@
 #include "codegen.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/FileSystem.h"
 
 CodeGen::CodeGen() {
     context = std::make_unique<llvm::LLVMContext>();
@@ -10,11 +12,23 @@ CodeGen::CodeGen() {
 
 void CodeGen::generate(ModuleAST& ast) {
     visit(ast);
-    create_start_function();
 }
 
 void CodeGen::dump() {
     module->print(llvm::outs(), nullptr);
+}
+
+bool CodeGen::writeToFile(const std::string& filename) {
+    std::error_code EC;
+    llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OF_None);
+
+    if (EC) {
+        llvm::errs() << "Could not open file: " << EC.message();
+        return false;
+    }
+
+    module->print(dest, nullptr);
+    return true;
 }
 
 llvm::Value* CodeGen::logErrorV(const char* str) {
@@ -317,28 +331,4 @@ void CodeGen::visit(ModuleAST& ast) {
     for (auto& func : ast.Functions) {
         visit(*func);
     }
-}
-
-void CodeGen::create_start_function() {
-    // Declare exit
-    llvm::FunctionType* exit_type = llvm::FunctionType::get(builder->getVoidTy(), builder->getInt32Ty(), false);
-    llvm::Function::Create(exit_type, llvm::Function::ExternalLinkage, "exit", module.get());
-
-    // Define _start
-    llvm::Function* start_func = llvm::Function::Create(
-        llvm::FunctionType::get(builder->getVoidTy(), false),
-        llvm::Function::ExternalLinkage, "_start", module.get()
-    );
-    llvm::BasicBlock* entry = llvm::BasicBlock::Create(*context, "entry", start_func);
-    builder->SetInsertPoint(entry);
-
-    // Call main
-    llvm::Function* main_func = getFunction("main");
-    llvm::Value* argc = llvm::ConstantInt::get(builder->getInt32Ty(), 0);
-    llvm::Value* argv = llvm::ConstantPointerNull::get(builder->getInt8Ty()->getPointerTo());
-    llvm::Value* result = builder->CreateCall(main_func, {argc, argv}, "result");
-
-    // Call exit
-    builder->CreateCall(getFunction("exit"), result);
-    builder->CreateRetVoid();
 }
