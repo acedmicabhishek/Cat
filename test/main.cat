@@ -1,0 +1,9 @@
+fn main() -> int {
+    int a = 5;
+    if (a < 10) {
+        print("a is less than %d\n", 10);
+    } else {
+        print("a is not less than %d\n", 10);
+    };
+    return 0;
+}
