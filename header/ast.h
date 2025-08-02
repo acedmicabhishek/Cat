@@ -83,9 +83,9 @@ struct ReturnStmt : Stmt {
 
 // Statement for a print call
 struct PrintStmt : Stmt {
-    std::unique_ptr<StringExpr> Format;
+    std::unique_ptr<Expr> Format;
     std::vector<std::unique_ptr<Expr>> Args;
-    PrintStmt(std::unique_ptr<StringExpr> format, std::vector<std::unique_ptr<Expr>> args)
+    PrintStmt(std::unique_ptr<Expr> format, std::vector<std::unique_ptr<Expr>> args)
         : Format(std::move(format)), Args(std::move(args)) {}
 };
 

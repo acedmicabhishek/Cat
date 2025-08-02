@@ -185,7 +185,7 @@ std::unique_ptr<Stmt> Parser::parsePrintStmt() {
     advance(); // consume 'print'
     if (!match(TokenType::LPAREN)) return nullptr;
 
-    auto formatExpr = parseStringExpr();
+    auto formatExpr = parseExpression();
     if (!formatExpr) return nullptr;
 
     std::vector<std::unique_ptr<Expr>> args;
@@ -198,7 +198,7 @@ std::unique_ptr<Stmt> Parser::parsePrintStmt() {
     if (!match(TokenType::RPAREN)) return nullptr;
     if (!match(TokenType::SEMICOLON)) return nullptr;
 
-    return std::make_unique<PrintStmt>(std::unique_ptr<StringExpr>(static_cast<StringExpr*>(formatExpr.release())), std::move(args));
+    return std::make_unique<PrintStmt>(std::move(formatExpr), std::move(args));
 }
 
 std::unique_ptr<Stmt> Parser::parseScanStmt() {

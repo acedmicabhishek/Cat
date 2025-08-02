@@ -186,10 +186,33 @@ void CodeGen::visit(ReturnStmt& ast) {
 void CodeGen::visit(PrintStmt& ast) {
     llvm::Function* printfFn = getFunction("printf");
     std::vector<llvm::Value*> args;
-    args.push_back(builder->CreateGlobalString(ast.Format->Value));
-    for (auto& arg : ast.Args) {
-        args.push_back(visit(*arg));
+
+    if (auto* se = dynamic_cast<StringExpr*>(ast.Format.get())) {
+        args.push_back(builder->CreateGlobalString(se->Value));
+        for (auto& arg : ast.Args) {
+            args.push_back(visit(*arg));
+        }
+    } else {
+        llvm::Value* valueToPrint = visit(*ast.Format);
+        llvm::Type* type = valueToPrint->getType();
+        std::string format;
+
+        if (type->isIntegerTy(32)) {
+            format = "%d";
+        } else if (type->isFloatTy()) {
+            format = "%f";
+        } else if (type->isIntegerTy(1)) {
+            format = "%d";
+        } else if (type->isPointerTy() && type->getContainedType(0)->isIntegerTy(8)) {
+            format = "%s";
+        } else {
+            logErrorV("Printing expressions of this type is not supported.");
+            return;
+        }
+        args.push_back(builder->CreateGlobalString(format));
+        args.push_back(valueToPrint);
     }
+
     builder->CreateCall(printfFn, args);
 }
 
