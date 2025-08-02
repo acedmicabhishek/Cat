@@ -186,7 +186,7 @@ void CodeGen::visit(ReturnStmt& ast) {
 void CodeGen::visit(PrintStmt& ast) {
     llvm::Function* printfFn = getFunction("printf");
     std::vector<llvm::Value*> args;
-    args.push_back(builder->CreateGlobalStringPtr(ast.Format->Value));
+    args.push_back(builder->CreateGlobalString(ast.Format->Value));
     for (auto& arg : ast.Args) {
         args.push_back(visit(*arg));
     }
@@ -200,7 +200,7 @@ void CodeGen::visit(ScanStmt& ast) {
         return;
     }
     llvm::Function* scanfFn = getFunction("scanf");
-    llvm::Value* formatStr = builder->CreateGlobalStringPtr("%d");
+    llvm::Value* formatStr = builder->CreateGlobalString("%d");
     builder->CreateCall(scanfFn, {formatStr, alloca});
 }
 
@@ -269,7 +269,7 @@ llvm::Function* CodeGen::visit(PrototypeAST& ast) {
     if (ast.Name == "main") {
         // Force main to have the standard C signature
         argTypes.push_back(builder->getInt32Ty()); // argc
-        argTypes.push_back(llvm::PointerType::get(builder->getInt8Ty(), 0)->getPointerTo()); // argv
+        argTypes.push_back(llvm::PointerType::get(builder->getInt8Ty()->getPointerTo(), 0)); // argv
     } else {
         for (const auto& arg : ast.Args) {
             argTypes.push_back(getType(arg.first));

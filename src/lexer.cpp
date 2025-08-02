@@ -137,10 +137,22 @@ Token Lexer::number() {
 }
 
 Token Lexer::stringLiteral() {
+    std::string value;
     while (peek() != '"' && !isAtEnd()) {
-        if (peek() == '\n') {
-            line++;
-            column = 1;
+        if (peek() == '\\') {
+            advance(); // Consume the backslash
+            switch (peek()) {
+                case 'n': value += '\n'; break;
+                case 't': value += '\t'; break;
+                case '\\': value += '\\'; break;
+                case '"': value += '"'; break;
+                default:
+                    // Or just append the character literally
+                    value += peek();
+                    break;
+            }
+        } else {
+            value += peek();
         }
         advance();
     }
@@ -151,7 +163,6 @@ Token Lexer::stringLiteral() {
     }
 
     advance(); // The closing "
-    std::string value = source.substr(start + 1, current - start - 2);
     return {TokenType::STRING_LITERAL, value, line, column};
 }
 
