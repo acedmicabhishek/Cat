@@ -1,14 +1,9 @@
 fn main() -> int {
-    int x;
-    print("Enter a number: ");
-    scan(x);
-    print("You entered: %d\n", x);
-    
-        if (x < 10) {
-        print("x is less than %d\n", 10);
-    } else {
-        print("x is not less than %d\n", 10);
-    };
-    
+    int c = add(5, 3);
+    print(c);
     return 0;
+}
+
+fn add(int x, int y) -> int {
+    return x + y;
 }

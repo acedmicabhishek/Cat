@@ -167,6 +167,7 @@ void CodeGen::visit(Stmt& ast) {
     if (auto* s = dynamic_cast<BlockStmt*>(&ast)) return visit(*s);
     if (auto* s = dynamic_cast<ReturnStmt*>(&ast)) return visit(*s);
     if (auto* s = dynamic_cast<PrintStmt*>(&ast)) return visit(*s);
+    if (auto* s = dynamic_cast<ExprStmt*>(&ast)) return visit(*s);
     if (auto* s = dynamic_cast<ScanStmt*>(&ast)) return visit(*s);
     if (auto* s = dynamic_cast<VarDeclStmt*>(&ast)) return visit(*s);
     if (auto* s = dynamic_cast<IfStmt*>(&ast)) return visit(*s);
@@ -216,6 +217,10 @@ void CodeGen::visit(PrintStmt& ast) {
     builder->CreateCall(printfFn, args);
 }
 
+void CodeGen::visit(ExprStmt& ast) {
+    visit(*ast.Expression);
+}
+
 void CodeGen::visit(ScanStmt& ast) {
     llvm::AllocaInst* alloca = namedValues[ast.Var->Name];
     if (!alloca) {
@@ -223,7 +228,19 @@ void CodeGen::visit(ScanStmt& ast) {
         return;
     }
     llvm::Function* scanfFn = getFunction("scanf");
-    llvm::Value* formatStr = builder->CreateGlobalString("%d");
+    llvm::Type* varType = alloca->getAllocatedType();
+    std::string format;
+
+    if (varType->isIntegerTy(32)) {
+        format = "%d";
+    } else if (varType->isFloatTy()) {
+        format = "%f";
+    } else {
+        logErrorV("Scanning for this type is not supported.");
+        return;
+    }
+
+    llvm::Value* formatStr = builder->CreateGlobalString(format);
     builder->CreateCall(scanfFn, {formatStr, alloca});
 }
 

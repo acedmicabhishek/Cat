@@ -94,6 +94,12 @@ struct ScanStmt : Stmt {
     std::unique_ptr<VariableExpr> Var;
     ScanStmt(std::unique_ptr<VariableExpr> var) : Var(std::move(var)) {}
 };
+// Statement for an expression
+struct ExprStmt : Stmt {
+    std::unique_ptr<Expr> Expression;
+    ExprStmt(std::unique_ptr<Expr> expr) : Expression(std::move(expr)) {}
+};
+
 
 // Forward declaration
 struct BlockStmt;

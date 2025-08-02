@@ -35,6 +35,7 @@ private:
     void visit(BlockStmt& ast);
     void visit(ReturnStmt& ast);
     void visit(PrintStmt& ast);
+    void visit(ExprStmt& ast);
     void visit(ScanStmt& ast);
     void visit(VarDeclStmt& ast);
     void visit(IfStmt& ast);

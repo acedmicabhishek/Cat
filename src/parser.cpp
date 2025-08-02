@@ -177,6 +177,7 @@ std::unique_ptr<Expr> Parser::parseExpression() {
 std::unique_ptr<Stmt> Parser::parseReturnStmt() {
     advance(); // consume 'return'
     auto value = parseExpression();
+    if (!value) return nullptr;
     if (!match(TokenType::SEMICOLON)) return nullptr;
     return std::make_unique<ReturnStmt>(std::move(value));
 }
@@ -223,6 +224,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
     std::unique_ptr<Expr> init = nullptr;
     if (match(TokenType::ASSIGN)) {
         init = parseExpression();
+        if (!init) return nullptr;
     }
 
     if (!match(TokenType::SEMICOLON)) return nullptr;
@@ -233,11 +235,14 @@ std::unique_ptr<Stmt> Parser::parseIfStmt() {
     advance(); // consume 'if'
     if (!match(TokenType::LPAREN)) return nullptr;
     auto condition = parseExpression();
+    if (!condition) return nullptr;
     if (!match(TokenType::RPAREN)) return nullptr;
     auto thenBranch = parseBlock();
+    if (!thenBranch) return nullptr;
     std::unique_ptr<BlockStmt> elseBranch = nullptr;
     if (match(TokenType::ELSE)) {
         elseBranch = parseBlock();
+        if (!elseBranch) return nullptr;
     }
     return std::make_unique<IfStmt>(std::move(condition), std::move(thenBranch), std::move(elseBranch));
 }
@@ -246,8 +251,10 @@ std::unique_ptr<Stmt> Parser::parseWhileStmt() {
     advance(); // consume 'while'
     if (!match(TokenType::LPAREN)) return nullptr;
     auto condition = parseExpression();
+    if (!condition) return nullptr;
     if (!match(TokenType::RPAREN)) return nullptr;
     auto body = parseBlock();
+    if (!body) return nullptr;
     return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
 }
 
@@ -258,6 +265,9 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     if (isType()) return parseVarDeclStmt();
     if (check(TokenType::IF)) return parseIfStmt();
     if (check(TokenType::WHILE)) return parseWhileStmt();
+    if (check(TokenType::IDENTIFIER)) {
+        return std::make_unique<ExprStmt>(parseIdentifierExpr());
+    }
     return nullptr;
 }
 
@@ -301,7 +311,9 @@ std::unique_ptr<PrototypeAST> Parser::parsePrototype() {
 
     std::string returnType = "void"; // Default return type
     if (match(TokenType::COLON) || match(TokenType::ARROW)) {
-        if (!isType()) return nullptr;
+        if (!isType()) {
+            return nullptr;
+        }
         returnType = currentToken().value;
         advance();
     }
@@ -311,10 +323,14 @@ std::unique_ptr<PrototypeAST> Parser::parsePrototype() {
 
 std::unique_ptr<FunctionAST> Parser::parseDefinition() {
     auto proto = parsePrototype();
-    if (!proto) return nullptr;
+    if (!proto) {
+        return nullptr;
+    }
 
     auto body = parseBlock();
-    if (!body) return nullptr;
+    if (!body) {
+        return nullptr;
+    }
 
     return std::make_unique<FunctionAST>(std::move(proto), std::move(body));
 }
